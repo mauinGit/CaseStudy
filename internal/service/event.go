@@ -275,23 +275,92 @@ func (s *EventService) CancelRegistration(ctx context.Context, actor domain.Acto
 	})
 }
 
-// ListParticipants lists an event's registrations, scoped by role: Lead sees
-// everyone; a Division Head sees everyone on their division's events and only
-// their own division's members elsewhere; a Member sees only themselves.
+// participantScope restricts participant and attendance data by role: Lead
+// sees everyone; a Division Head sees everyone on their division's events and
+// only their own division's members elsewhere; a Member sees only themselves.
+func participantScope(actor domain.Actor, e *domain.Event) (divisionID, onlyUserID *uuid.UUID) {
+	switch {
+	case actor.IsLead():
+		return nil, nil
+	case actor.IsDivisionHead() && actor.DivisionID != nil:
+		if actor.InDivision(e.DivisionID) {
+			return nil, nil
+		}
+		return actor.DivisionID, nil
+	default:
+		return nil, &actor.UserID
+	}
+}
+
+// ListParticipants lists an event's registrations, scoped by role (see
+// participantScope).
 func (s *EventService) ListParticipants(ctx context.Context, actor domain.Actor, f domain.ParticipantFilter) (domain.Page[*domain.Participant], error) {
 	e, err := s.store.Events.GetActive(ctx, f.EventID)
 	if err != nil {
 		return domain.Page[*domain.Participant]{}, err
 	}
-	f.DivisionID, f.OnlyUserID = nil, nil
-	switch {
-	case actor.IsLead():
-	case actor.IsDivisionHead() && actor.DivisionID != nil:
-		if !actor.InDivision(e.DivisionID) {
-			f.DivisionID = actor.DivisionID
-		}
-	default:
-		f.OnlyUserID = &actor.UserID
-	}
+	f.DivisionID, f.OnlyUserID = participantScope(actor, e)
 	return s.store.Registrations.ListParticipants(ctx, f)
+}
+
+// CheckIn records the actor's attendance. It is idempotent: when the actor
+// has already checked in, the existing row is returned with created=false
+// (also for a retry that arrives after the event ended). A new check-in is
+// only accepted while start_at <= now <= end_at and only for an active
+// registration.
+func (s *EventService) CheckIn(ctx context.Context, actor domain.Actor, eventID uuid.UUID) (*domain.Attendance, bool, error) {
+	var (
+		out     *domain.Attendance
+		created bool
+	)
+	err := s.store.InTx(ctx, func(r repository.Repos) error {
+		e, err := r.Events.GetActive(ctx, eventID)
+		if err != nil {
+			return err
+		}
+		existing, ok, err := r.Attendances.Get(ctx, eventID, actor.UserID)
+		if err != nil {
+			return err
+		}
+		if ok {
+			out = existing
+			return nil
+		}
+
+		switch e.StatusAt(s.now()) {
+		case domain.EventUpcoming:
+			return domain.ErrCheckInNotOpen
+		case domain.EventFinished:
+			return domain.ErrEventEnded
+		}
+
+		// Shared lock: a concurrent cancel (FOR UPDATE) waits for this
+		// check-in, and then sees the attendance and refuses.
+		reg, err := r.Registrations.GetForShare(ctx, eventID, actor.UserID)
+		if errors.Is(err, domain.ErrRegistrationNotFound) {
+			return domain.ErrNotRegistered
+		}
+		if err != nil {
+			return err
+		}
+		if reg.Status != domain.RegistrationRegistered {
+			return domain.ErrNotRegistered
+		}
+
+		// INSERT ... ON CONFLICT DO NOTHING: concurrent duplicates insert one
+		// row; the losers get the winner's row back.
+		out, created, err = r.Attendances.Insert(ctx, eventID, actor.UserID)
+		return err
+	})
+	return out, created, err
+}
+
+// ListAttendances lists an event's check-ins, scoped like participants.
+func (s *EventService) ListAttendances(ctx context.Context, actor domain.Actor, f domain.AttendanceFilter) (domain.Page[*domain.AttendanceRecord], error) {
+	e, err := s.store.Events.GetActive(ctx, f.EventID)
+	if err != nil {
+		return domain.Page[*domain.AttendanceRecord]{}, err
+	}
+	f.DivisionID, f.OnlyUserID = participantScope(actor, e)
+	return s.store.Attendances.List(ctx, f)
 }
