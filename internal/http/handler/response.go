@@ -59,11 +59,6 @@ func toUserResponse(u *domain.User) UserResponse {
 		CreatedAt:    u.CreatedAt,
 		UpdatedAt:    u.UpdatedAt,
 	}
-	if u.DivisionID != nil {
-		r.Division = &DivisionRef{ID: *u.DivisionID}
-		if u.DivisionName != nil {
-			r.Division.Name = *u.DivisionName
-		}
-	}
+	r.Division = divisionRef(u.DivisionID, u.DivisionName)
 	return r
 }

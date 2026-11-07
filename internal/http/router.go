@@ -47,11 +47,13 @@ func NewRouter(d Deps) (*gin.Engine, error) {
 		return nil, fmt.Errorf("auth service: %w", err)
 	}
 	userSvc := service.NewUserService(store, cfg.BcryptCost)
+	eventSvc := service.NewEventService(store)
 
 	// ---- handlers ----
 	health := handler.NewHealthHandler(d.DB)
 	authH := handler.NewAuthHandler(authSvc, cfg.IsProduction())
 	userH := handler.NewUserHandler(userSvc)
+	eventH := handler.NewEventHandler(eventSvc)
 
 	// ---- engine & global middleware ----
 	r := gin.New()
@@ -100,6 +102,16 @@ func NewRouter(d Deps) (*gin.Engine, error) {
 	members.PATCH("/:id", userH.UpdateMember)
 	members.DELETE("/:id", userH.DeleteMember)
 	members.PATCH("/:id/role", userH.ChangeRole)
+
+	events := authed.Group("/events")
+	events.GET("", eventH.List)
+	events.POST("", eventH.Create)
+	events.GET("/:id", eventH.Get)
+	events.PATCH("/:id", eventH.Update)
+	events.DELETE("/:id", eventH.Delete)
+	events.POST("/:id/register", eventH.Register)
+	events.DELETE("/:id/register", eventH.Cancel)
+	events.GET("/:id/participants", eventH.Participants)
 
 	return r, nil
 }
