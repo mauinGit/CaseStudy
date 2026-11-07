@@ -7,11 +7,13 @@ import "github.com/google/uuid"
 const (
 	AuditMemberRoleChanged = "member.role_changed"
 	AuditMemberDeleted     = "member.deleted"
+	AuditEventQuotaChanged = "event.quota_changed"
 )
 
 // Audited entity types.
 const (
-	EntityUser = "user"
+	EntityUser  = "user"
+	EntityEvent = "event"
 )
 
 // AuditEntry is a new audit log row. OldValue/NewValue are JSON-encoded.

@@ -20,16 +20,20 @@ type DBTX interface {
 
 // Repos groups repositories bound to the same DBTX.
 type Repos struct {
-	Users     *UserRepo
-	Divisions *DivisionRepo
-	Audit     *AuditRepo
+	Users         *UserRepo
+	Divisions     *DivisionRepo
+	Audit         *AuditRepo
+	Events        *EventRepo
+	Registrations *RegistrationRepo
 }
 
 func newRepos(db DBTX) Repos {
 	return Repos{
-		Users:     &UserRepo{db: db},
-		Divisions: &DivisionRepo{db: db},
-		Audit:     &AuditRepo{db: db},
+		Users:         &UserRepo{db: db},
+		Divisions:     &DivisionRepo{db: db},
+		Audit:         &AuditRepo{db: db},
+		Events:        &EventRepo{db: db},
+		Registrations: &RegistrationRepo{db: db},
 	}
 }
 
