@@ -180,3 +180,13 @@ func (r *RegistrationRepo) GetForUpdate(ctx context.Context, eventID, userID uui
 		eventID, userID))
 	return reg, wrap("lock registration", err)
 }
+
+// GetForShare returns the registration of a user for an event with a shared
+// row lock: concurrent check-ins proceed together, while a concurrent cancel
+// (which takes FOR UPDATE) waits. Must be called inside InTx.
+func (r *RegistrationRepo) GetForShare(ctx context.Context, eventID, userID uuid.UUID) (*domain.Registration, error) {
+	reg, err := scanRegistration(r.db.QueryRow(ctx,
+		`SELECT `+registrationCols+` FROM event_registrations r WHERE r.event_id = $1 AND r.user_id = $2 FOR SHARE`,
+		eventID, userID))
+	return reg, wrap("share-lock registration", err)
+}

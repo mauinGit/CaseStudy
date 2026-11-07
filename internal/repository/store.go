@@ -25,6 +25,7 @@ type Repos struct {
 	Audit         *AuditRepo
 	Events        *EventRepo
 	Registrations *RegistrationRepo
+	Attendances   *AttendanceRepo
 }
 
 func newRepos(db DBTX) Repos {
@@ -34,6 +35,7 @@ func newRepos(db DBTX) Repos {
 		Audit:         &AuditRepo{db: db},
 		Events:        &EventRepo{db: db},
 		Registrations: &RegistrationRepo{db: db},
+		Attendances:   &AttendanceRepo{db: db},
 	}
 }
 
