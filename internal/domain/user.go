@@ -33,6 +33,7 @@ type User struct {
 	GoogleSub    *string
 	Role         Role
 	DivisionID   *uuid.UUID
+	DivisionName *string
 	Phone        *string
 	Bio          *string
 	CreatedAt    time.Time

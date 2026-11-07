@@ -48,17 +48,25 @@ const (
 	msgInternal = "Terjadi kesalahan pada server"
 )
 
-// statusByCode maps domain error codes to HTTP status codes.
+// statusByCode is the single place that maps domain error codes to HTTP
+// status codes. Unknown codes fall back to 500.
 var statusByCode = map[string]int{
 	domain.ErrNotFound.Code:     http.StatusNotFound,
 	domain.ErrUnauthorized.Code: http.StatusUnauthorized,
 	domain.ErrForbidden.Code:    http.StatusForbidden,
 	domain.ErrConflict.Code:     http.StatusConflict,
-}
 
-// Register adds (or overrides) the HTTP status for a domain error code.
-// Feature packages call it from init() for their own errors.
-func Register(code string, status int) { statusByCode[code] = status }
+	// auth
+	domain.ErrInvalidCredentials.Code:    http.StatusUnauthorized,
+	domain.ErrInvalidToken.Code:          http.StatusUnauthorized,
+	domain.ErrTooManyRequests.Code:       http.StatusTooManyRequests,
+	domain.ErrGoogleDisabled.Code:        http.StatusServiceUnavailable,
+	domain.ErrInvalidOAuthState.Code:     http.StatusBadRequest,
+	domain.ErrOAuthFailed.Code:           http.StatusUnauthorized,
+	domain.ErrEmailNotVerified.Code:      http.StatusForbidden,
+	domain.ErrEmailDomainNotAllowed.Code: http.StatusForbidden,
+	domain.ErrAccountNotRegistered.Code:  http.StatusForbidden,
+}
 
 // StatusFor returns the HTTP status for a domain error code (500 if unknown).
 func StatusFor(code string) int {
@@ -79,7 +87,7 @@ func Respond(c *gin.Context, err error) {
 	var de *domain.Error
 	if errors.As(err, &de) {
 		status := StatusFor(de.Code)
-		if status >= http.StatusInternalServerError {
+		if status == http.StatusInternalServerError {
 			logInternal(c, err)
 		}
 		Abort(c, status, Detail{Code: de.Code, Message: de.Message})
