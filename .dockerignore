@@ -1,0 +1,14 @@
+# Never send secrets or local artefacts into the build context.
+.env
+.env.*
+!.env.example
+.git
+.github
+bin
+tmp
+*.md
+*.exe
+*.test
+coverage.*
+.idea
+.vscode
