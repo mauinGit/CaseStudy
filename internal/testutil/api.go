@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -115,6 +116,26 @@ func (a *API) Serve(req *http.Request) *httptest.ResponseRecorder {
 	rec := httptest.NewRecorder()
 	a.Router.ServeHTTP(rec, req)
 	return rec
+}
+
+// WarmPool opens n database connections up front. The pool connects lazily,
+// so without this the first request of a concurrent burst can finish on the
+// one idle connection while the others are still dialing, and the "race"
+// silently runs one request at a time.
+func (a *API) WarmPool(n int) {
+	a.T.Helper()
+	n = min(n, int(a.Pool.Config().MaxConns))
+	conns := make([]*pgxpool.Conn, 0, n)
+	for range n {
+		c, err := a.Pool.Acquire(context.Background())
+		if err != nil {
+			a.T.Fatalf("warm pool: %v", err)
+		}
+		conns = append(conns, c)
+	}
+	for _, c := range conns {
+		c.Release()
+	}
 }
 
 // Do builds and executes a request.

@@ -87,15 +87,16 @@ FROM generate_series(1, $4) AS g`, prefix, seed.UserLead, seed.DivBackend, n)
 	return tokens
 }
 
-// fireConcurrently sends one register request per token at the same instant
-// and returns the status codes and error codes.
-func fireConcurrently(api *testutil.API, eventID string, tokens []string) (codes []int, errCodes map[string]int) {
+// postConcurrently sends one POST per token to path at the same instant and
+// returns the status codes and response bodies.
+func postConcurrently(api *testutil.API, path string, tokens []string) (codes []int, bodies []string) {
+	api.WarmPool(len(tokens))
 	reqs := make([]*http.Request, len(tokens))
 	for i, tok := range tokens {
-		reqs[i] = api.NewRequest(http.MethodPost, eventPath(eventID)+"/register", tok, nil)
+		reqs[i] = api.NewRequest(http.MethodPost, path, tok, nil)
 	}
 	codes = make([]int, len(tokens))
-	bodies := make([]string, len(tokens))
+	bodies = make([]string, len(tokens))
 	var wg sync.WaitGroup
 	start := make(chan struct{})
 	for i, req := range reqs {
@@ -109,7 +110,13 @@ func fireConcurrently(api *testutil.API, eventID string, tokens []string) (codes
 	}
 	close(start)
 	wg.Wait()
+	return codes, bodies
+}
 
+// fireConcurrently sends one register request per token at the same instant
+// and returns the status codes and error codes.
+func fireConcurrently(api *testutil.API, eventID string, tokens []string) (codes []int, errCodes map[string]int) {
+	codes, bodies := postConcurrently(api, eventPath(eventID)+"/register", tokens)
 	errCodes = map[string]int{}
 	for i, code := range codes {
 		if code != http.StatusCreated {
