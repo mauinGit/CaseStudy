@@ -128,8 +128,14 @@ var loginCounter atomic.Int64
 // Login signs in a seeded account and returns its access token.
 func (a *API) Login(email string) string {
 	a.T.Helper()
+	return a.LoginWith(email, SeedPassword)
+}
+
+// LoginWith signs in with explicit credentials and returns the access token.
+func (a *API) LoginWith(email, password string) string {
+	a.T.Helper()
 	req := a.NewRequest(http.MethodPost, "/api/v1/auth/login", "", map[string]string{
-		"email": email, "password": SeedPassword,
+		"email": email, "password": password,
 	})
 	// Unique source IP per login so helper logins never hit the rate limit.
 	n := loginCounter.Add(1)
