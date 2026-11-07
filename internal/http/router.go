@@ -46,7 +46,7 @@ func NewRouter(d Deps) (*gin.Engine, error) {
 	if err != nil {
 		return nil, fmt.Errorf("auth service: %w", err)
 	}
-	userSvc := service.NewUserService(store)
+	userSvc := service.NewUserService(store, cfg.BcryptCost)
 
 	// ---- handlers ----
 	health := handler.NewHealthHandler(d.DB)
