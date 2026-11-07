@@ -82,6 +82,10 @@ var statusByCode = map[string]int{
 	domain.ErrAlreadyCheckedIn.Code:     http.StatusConflict,
 	domain.ErrQuotaBelowRegistered.Code: http.StatusConflict,
 	domain.ErrInvalidTimeRange.Code:     http.StatusBadRequest,
+
+	// attendance
+	domain.ErrCheckInNotOpen.Code: http.StatusConflict,
+	domain.ErrNotRegistered.Code:  http.StatusForbidden,
 }
 
 // StatusFor returns the HTTP status for a domain error code (500 if unknown).

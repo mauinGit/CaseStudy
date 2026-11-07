@@ -48,12 +48,14 @@ func NewRouter(d Deps) (*gin.Engine, error) {
 	}
 	userSvc := service.NewUserService(store, cfg.BcryptCost)
 	eventSvc := service.NewEventService(store)
+	auditSvc := service.NewAuditService(store)
 
 	// ---- handlers ----
 	health := handler.NewHealthHandler(d.DB)
 	authH := handler.NewAuthHandler(authSvc, cfg.IsProduction())
 	userH := handler.NewUserHandler(userSvc)
 	eventH := handler.NewEventHandler(eventSvc)
+	auditH := handler.NewAuditHandler(auditSvc)
 
 	// ---- engine & global middleware ----
 	r := gin.New()
@@ -112,6 +114,10 @@ func NewRouter(d Deps) (*gin.Engine, error) {
 	events.POST("/:id/register", eventH.Register)
 	events.DELETE("/:id/register", eventH.Cancel)
 	events.GET("/:id/participants", eventH.Participants)
+	events.POST("/:id/check-in", eventH.CheckIn)
+	events.GET("/:id/attendances", eventH.Attendances)
+
+	authed.GET("/audit-logs", auditH.List)
 
 	return r, nil
 }
