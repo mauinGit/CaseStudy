@@ -90,6 +90,16 @@ func NewRouter(d Deps) (*gin.Engine, error) {
 
 	authed := api.Group("", middleware.Authenticate(authSvc))
 	authed.GET("/me", userH.GetMe)
+	authed.PATCH("/me", userH.UpdateMe)
+	authed.GET("/divisions", userH.ListDivisions)
+
+	members := authed.Group("/members")
+	members.GET("", userH.ListMembers)
+	members.POST("", userH.CreateMember)
+	members.GET("/:id", userH.GetMember)
+	members.PATCH("/:id", userH.UpdateMember)
+	members.DELETE("/:id", userH.DeleteMember)
+	members.PATCH("/:id/role", userH.ChangeRole)
 
 	return r, nil
 }

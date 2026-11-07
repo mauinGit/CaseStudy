@@ -66,6 +66,14 @@ var statusByCode = map[string]int{
 	domain.ErrEmailNotVerified.Code:      http.StatusForbidden,
 	domain.ErrEmailDomainNotAllowed.Code: http.StatusForbidden,
 	domain.ErrAccountNotRegistered.Code:  http.StatusForbidden,
+
+	// members
+	domain.ErrEmailTaken.Code:          http.StatusConflict,
+	domain.ErrDivisionNotFound.Code:    http.StatusUnprocessableEntity,
+	domain.ErrDivisionRequired.Code:    http.StatusBadRequest,
+	domain.ErrPasswordTooLong.Code:     http.StatusBadRequest,
+	domain.ErrCannotChangeOwnRole.Code: http.StatusForbidden,
+	domain.ErrCannotDeleteSelf.Code:    http.StatusForbidden,
 }
 
 // StatusFor returns the HTTP status for a domain error code (500 if unknown).

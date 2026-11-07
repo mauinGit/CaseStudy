@@ -7,12 +7,14 @@ import (
 	"io"
 	"net/http"
 	"reflect"
+	"regexp"
 	"strings"
 	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
+	"github.com/go-playground/validator/v10/non-standard/validators"
 
 	"github.com/mauinGit/gdgoc-core-team-api/internal/apperror"
 	"github.com/mauinGit/gdgoc-core-team-api/internal/http/middleware"
@@ -20,7 +22,8 @@ import (
 
 var validatorOnce sync.Once
 
-// SetupValidator makes validation errors report JSON/query field names.
+// SetupValidator makes validation errors report JSON/query field names and
+// registers the custom "notblank" and "phone" rules.
 func SetupValidator() {
 	validatorOnce.Do(func() {
 		v, ok := binding.Validator.Engine().(*validator.Validate)
@@ -39,6 +42,8 @@ func SetupValidator() {
 			}
 			return f.Name
 		})
+		_ = v.RegisterValidation("notblank", validators.NotBlank)
+		_ = v.RegisterValidation("phone", isPhone)
 	})
 }
 
@@ -127,4 +132,14 @@ func fieldMessage(fe validator.FieldError) string {
 	default:
 		return "tidak valid"
 	}
+}
+
+// phonePattern accepts local (08xx) and international (+62xx) numbers.
+var phonePattern = regexp.MustCompile(`^\+?[0-9]{8,15}$`)
+
+// isPhone validates a phone number. An empty string is allowed because it
+// means "clear this field" in profile updates.
+func isPhone(fl validator.FieldLevel) bool {
+	s := strings.TrimSpace(fl.Field().String())
+	return s == "" || phonePattern.MatchString(s)
 }
