@@ -27,6 +27,8 @@ import (
 	"github.com/mauinGit/gdgoc-core-team-api/seed"
 )
 
+// main starts the API. The annotations below are swag's general API info.
+//
 //	@title						GDGoC UNSRI Core Team API
 //	@version					1.0
 //	@description				REST API manajemen Core Team dan anggota GDGoC UNSRI: autentikasi (JWT + Google OAuth), RBAC (Lead, Division Head, Member), manajemen anggota, event dengan kuota, kehadiran, dan audit log.
