@@ -8,7 +8,7 @@ Dibangun dengan **Go + Gin**, **PostgreSQL 16** (pgx, tanpa ORM), migrasi **gola
 
 | | |
 |---|---|
-| Live API | `https://<render-service>.onrender.com` *(diisi setelah deploy)* |
+| Live API | Belum tersedia: deploy terkendala verifikasi kartu kredit ([detail](#deploy-render--neon)). Jalankan lokal dengan `docker compose up --build`. |
 | Swagger UI | `/docs` (mis. http://localhost:8080/docs) |
 | Spesifikasi OpenAPI | [`openapi.yaml`](openapi.yaml) (juga di `/docs/doc.json`) |
 | Health check | `GET /healthz` |
@@ -361,7 +361,19 @@ Semua konfigurasi dari environment variable (lihat [`.env.example`](.env.example
 
 ## Deploy (Render + Neon)
 
-Deploy memakai **Render** (Web Service, Docker, free plan, region Singapore) dan **Neon** PostgreSQL (region Singapore, agar latensi API ↔ database rendah). Konfigurasi service ada di [`render.yaml`](render.yaml) (Render Blueprint). Tidak ada secret di repo: nilai rahasia diisi di dashboard Render.
+> **Status: belum di-deploy ke publik (kendala kartu kredit).**
+> Saat mencoba deploy, semua platform hosting yang dicoba meminta verifikasi kartu kredit/debit atau tidak bisa dipakai:
+>
+> | Platform | Kendala |
+> |---|---|
+> | Render | Verifikasi kartu (otorisasi $1) diminta, baik lewat Blueprint maupun Web Service biasa, dan kartu ditolak |
+> | Koyeb | Tidak menerima pendaftaran baru (layanan bergabung dengan Mistral) |
+> | Railway | Masa trial sudah habis |
+> | Hugging Face Spaces (Docker) | Runtime Docker memerlukan paket berbayar |
+>
+> Aplikasi sudah **siap deploy**: image Docker production (distroless, non-root), konfigurasi [`render.yaml`](render.yaml), migrasi dan seed otomatis saat start, health check `/healthz`, dan semua konfigurasi lewat environment variable. Begitu kartu tersedia, langkah di bawah bisa langsung dijalankan tanpa perubahan kode. Untuk penilaian, aplikasi bisa dijalankan lengkap secara lokal dengan satu perintah: `docker compose up --build` (lihat [Menjalankan dengan satu perintah](#menjalankan-dengan-satu-perintah)).
+
+Rencana deploy memakai **Render** (Web Service, Docker, free plan, region Singapore) dan **Neon** PostgreSQL (region Singapore, agar latensi API ↔ database rendah). Konfigurasi service ada di [`render.yaml`](render.yaml) (Render Blueprint). Tidak ada secret di repo: nilai rahasia diisi di dashboard Render.
 
 ### 1. Database (Neon)
 

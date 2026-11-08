@@ -3,7 +3,7 @@
 Bahan untuk `BE_CaseStudy_Maulana Adiatma.PDF`. Setiap bagian ditulis sebagai poin yang bisa langsung disusun ulang menjadi narasi.
 
 - **Repo:** https://github.com/mauinGit/CaseStudy
-- **Live API:** `https://<render-service>.onrender.com` *(isi setelah deploy)*, Swagger UI di `/docs`
+- **Live API:** belum tersedia (deploy terkendala verifikasi kartu kredit, lihat bagian 8). Jalankan lokal: `docker compose up --build`, Swagger UI di http://localhost:8080/docs
 - **Stack:** Go + Gin, PostgreSQL 16 (pgx, tanpa ORM), golang-migrate, JWT + bcrypt, Google OAuth, Docker, GitHub Actions, Render + Neon
 
 ---
@@ -149,7 +149,8 @@ Bahan untuk `BE_CaseStudy_Maulana Adiatma.PDF`. Setiap bagian ditulis sebagai po
 
 ## 8. Deploy
 
-- **Render** (Docker, free, Singapore) + **Neon** PostgreSQL (Singapore) agar latensi API ↔ DB rendah. Konfigurasi di `render.yaml`; auto-deploy dari `main`; health check `/healthz` (cek koneksi DB).
+- **Status: belum di-deploy ke publik.** Render meminta verifikasi kartu kredit/debit (otorisasi $1) dan kartu ditolak; alternatif juga tidak bisa dipakai (Koyeb tidak menerima pendaftaran baru, trial Railway sudah habis, Docker di Hugging Face Spaces berbayar). Aplikasi tetap bisa dinilai penuh secara lokal dengan `docker compose up --build`, dan siap deploy tanpa perubahan kode begitu kartu tersedia.
+- **Rencana deploy: Render** (Docker, free, Singapore) + **Neon** PostgreSQL (Singapore) agar latensi API ↔ DB rendah. Konfigurasi di `render.yaml`; auto-deploy dari `main`; health check `/healthz` (cek koneksi DB).
 - Migrasi dan seed berjalan otomatis saat start. Koneksi memakai endpoint **direct** Neon (bukan pooler) karena golang-migrate memakai advisory lock level session; `DB_MAX_CONNS=5` sesuai batas free tier.
 - **Keep-alive:** cron-job.org memanggil `/healthz` setiap 10 menit agar Render tidak tidur. Request pertama setelah idle tetap bisa lambat (±30–60 detik).
 
