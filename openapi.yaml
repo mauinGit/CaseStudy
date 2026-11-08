@@ -1,0 +1,1468 @@
+basePath: /
+definitions:
+  apperror.Body:
+    properties:
+      error:
+        $ref: '#/definitions/apperror.Detail'
+    type: object
+  apperror.Detail:
+    properties:
+      code:
+        type: string
+      fields:
+        items:
+          $ref: '#/definitions/apperror.FieldError'
+        type: array
+      message:
+        type: string
+    type: object
+  apperror.FieldError:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+  domain.EventStatus:
+    enum:
+    - upcoming
+    - ongoing
+    - finished
+    type: string
+    x-enum-varnames:
+    - EventUpcoming
+    - EventOngoing
+    - EventFinished
+  domain.RegistrationStatus:
+    enum:
+    - registered
+    - cancelled
+    type: string
+    x-enum-varnames:
+    - RegistrationRegistered
+    - RegistrationCancelled
+  domain.Role:
+    enum:
+    - lead
+    - division_head
+    - member
+    type: string
+    x-enum-varnames:
+    - RoleLead
+    - RoleDivisionHead
+    - RoleMember
+  handler.AttendanceRecordResponse:
+    properties:
+      checked_in_at:
+        type: string
+      id:
+        type: string
+      user:
+        $ref: '#/definitions/handler.ParticipantUser'
+    type: object
+  handler.AttendanceResponse:
+    properties:
+      checked_in_at:
+        type: string
+      event_id:
+        type: string
+      id:
+        type: string
+      user_id:
+        type: string
+    type: object
+  handler.AuditActor:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  handler.AuditLogResponse:
+    properties:
+      action:
+        enum:
+        - member.role_changed
+        - member.deleted
+        - event.quota_changed
+        type: string
+      actor:
+        $ref: '#/definitions/handler.AuditActor'
+      created_at:
+        type: string
+      entity:
+        enum:
+        - user
+        - event
+        type: string
+      entity_id:
+        type: string
+      id:
+        type: integer
+      ip:
+        type: string
+      new_value:
+        type: object
+      old_value:
+        type: object
+    type: object
+  handler.DivisionRef:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  handler.DivisionResponse:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  handler.EventResponse:
+    properties:
+      created_at:
+        type: string
+      created_by:
+        type: string
+      description:
+        type: string
+      division:
+        $ref: '#/definitions/handler.DivisionRef'
+      end_at:
+        type: string
+      id:
+        type: string
+      location:
+        type: string
+      quota:
+        type: integer
+      registered_count:
+        type: integer
+      remaining_quota:
+        type: integer
+      start_at:
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/domain.EventStatus'
+        enum:
+        - upcoming
+        - ongoing
+        - finished
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  handler.ParticipantResponse:
+    properties:
+      registered_at:
+        type: string
+      registration_id:
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/domain.RegistrationStatus'
+        enum:
+        - registered
+        - cancelled
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/handler.ParticipantUser'
+    type: object
+  handler.ParticipantUser:
+    properties:
+      division:
+        $ref: '#/definitions/handler.DivisionRef'
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  handler.RegistrationResponse:
+    properties:
+      created_at:
+        type: string
+      event_id:
+        type: string
+      id:
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/domain.RegistrationStatus'
+        enum:
+        - registered
+        - cancelled
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  handler.UserResponse:
+    properties:
+      bio:
+        type: string
+      created_at:
+        type: string
+      division:
+        $ref: '#/definitions/handler.DivisionRef'
+      email:
+        type: string
+      google_linked:
+        type: boolean
+      id:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      role:
+        $ref: '#/definitions/domain.Role'
+      updated_at:
+        type: string
+    type: object
+  handler.changeRoleRequest:
+    properties:
+      division_id:
+        type: string
+      role:
+        enum:
+        - lead
+        - division_head
+        - member
+        type: string
+    required:
+    - role
+    type: object
+  handler.createEventRequest:
+    properties:
+      description:
+        maxLength: 5000
+        type: string
+      division_id:
+        type: string
+      end_at:
+        type: string
+      location:
+        maxLength: 200
+        type: string
+      quota:
+        maximum: 100000
+        minimum: 1
+        type: integer
+      start_at:
+        type: string
+      title:
+        maxLength: 150
+        minLength: 3
+        type: string
+    required:
+    - end_at
+    - location
+    - quota
+    - start_at
+    - title
+    type: object
+  handler.createMemberRequest:
+    properties:
+      bio:
+        maxLength: 500
+        type: string
+      division_id:
+        type: string
+      email:
+        maxLength: 254
+        type: string
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      password:
+        maxLength: 72
+        minLength: 8
+        type: string
+      phone:
+        type: string
+      role:
+        enum:
+        - lead
+        - division_head
+        - member
+        type: string
+    required:
+    - email
+    - name
+    type: object
+  handler.dataResponse:
+    properties:
+      data: {}
+    type: object
+  handler.healthResponse:
+    properties:
+      database:
+        type: string
+      status:
+        type: string
+      time:
+        type: string
+    type: object
+  handler.loginRequest:
+    properties:
+      email:
+        example: lead@gdgoc-unsri.test
+        maxLength: 254
+        type: string
+      password:
+        example: GdgocUnsri2026!
+        maxLength: 72
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  handler.loginResponse:
+    properties:
+      access_token:
+        type: string
+      expires_at:
+        type: string
+      expires_in:
+        type: integer
+      token_type:
+        type: string
+      user:
+        $ref: '#/definitions/handler.UserResponse'
+    type: object
+  handler.pageMeta:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  handler.pageResponse:
+    properties:
+      data: {}
+      meta:
+        $ref: '#/definitions/handler.pageMeta'
+    type: object
+  handler.updateEventRequest:
+    properties:
+      description:
+        maxLength: 5000
+        type: string
+      end_at:
+        type: string
+      location:
+        maxLength: 200
+        type: string
+      quota:
+        maximum: 100000
+        minimum: 1
+        type: integer
+      start_at:
+        type: string
+      title:
+        maxLength: 150
+        minLength: 3
+        type: string
+    type: object
+  handler.updateMemberRequest:
+    properties:
+      bio:
+        maxLength: 500
+        type: string
+      email:
+        maxLength: 254
+        type: string
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      phone:
+        type: string
+    type: object
+  handler.updateProfileRequest:
+    properties:
+      bio:
+        maxLength: 500
+        type: string
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      phone:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: |-
+    REST API manajemen Core Team dan anggota GDGoC UNSRI: autentikasi (JWT + Google OAuth), RBAC (Lead, Division Head, Member), manajemen anggota, event dengan kuota, kehadiran, dan audit log.
+
+    Semua respons sukses berbentuk {"data": ...} (list: {"data": [...], "meta": {...}}), semua error berbentuk {"error": {"code", "message", "fields?"}}.
+  title: GDGoC UNSRI Core Team API
+  version: "1.0"
+paths:
+  /api/v1/audit-logs:
+    get:
+      description: Hanya Lead. Urut dari yang terbaru. Mencatat perubahan role, soft
+        delete anggota, dan perubahan kuota event.
+      parameters:
+      - default: 1
+        description: Halaman (mulai 1)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Jumlah per halaman (maks 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Filter aksi
+        enum:
+        - member.role_changed
+        - member.deleted
+        - event.quota_changed
+        in: query
+        name: action
+        type: string
+      - description: Filter entitas
+        enum:
+        - user
+        - event
+        in: query
+        name: entity
+        type: string
+      - description: Filter ID entitas (UUID)
+        in: query
+        name: entity_id
+        type: string
+      - description: Filter pelaku (UUID)
+        in: query
+        name: actor_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.pageResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/handler.AuditLogResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Audit log
+      tags:
+      - audit
+  /api/v1/auth/google/callback:
+    get:
+      parameters:
+      - description: Authorization code
+        in: query
+        name: code
+        required: true
+        type: string
+      - description: State
+        in: query
+        name: state
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.dataResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.loginResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      summary: Callback Google OAuth
+      tags:
+      - auth
+  /api/v1/auth/google/login:
+    get:
+      responses:
+        "302":
+          description: Found
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      summary: Mulai login Google OAuth (buka di browser)
+      tags:
+      - auth
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Kredensial
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.dataResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.loginResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      summary: Login dengan email & password
+      tags:
+      - auth
+  /api/v1/divisions:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.dataResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/handler.DivisionResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Daftar divisi
+      tags:
+      - divisions
+  /api/v1/events:
+    get:
+      parameters:
+      - default: 1
+        description: Halaman (mulai 1)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Jumlah per halaman (maks 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Filter divisi (UUID)
+        in: query
+        name: division_id
+        type: string
+      - description: Filter status waktu
+        enum:
+        - upcoming
+        - ongoing
+        - finished
+        in: query
+        name: status
+        type: string
+      - description: Cari judul (case-insensitive)
+        in: query
+        name: search
+        type: string
+      - default: start_at
+        description: Kolom urutan
+        enum:
+        - start_at
+        - created_at
+        - title
+        in: query
+        name: sort
+        type: string
+      - default: asc
+        description: Arah urutan
+        enum:
+        - asc
+        - desc
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.pageResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/handler.EventResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Daftar event
+      tags:
+      - events
+    post:
+      consumes:
+      - application/json
+      description: 'Lead: event divisi mana pun atau event umum (division_id kosong).
+        Division Head: hanya event divisinya (division_id default ke divisinya). Member:
+        ditolak.'
+      parameters:
+      - description: Data event (waktu dalam RFC3339)
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.createEventRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.dataResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.EventResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Buat event
+      tags:
+      - events
+  /api/v1/events/{id}:
+    delete:
+      parameters:
+      - description: ID event (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Hapus event (soft delete)
+      tags:
+      - events
+    get:
+      parameters:
+      - description: ID event (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.dataResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.EventResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Detail event
+      tags:
+      - events
+    patch:
+      consumes:
+      - application/json
+      description: 'Lead: semua event. Division Head: event divisinya. Perubahan kuota
+        tidak boleh di bawah jumlah peserta terdaftar dan tercatat di audit log.'
+      parameters:
+      - description: ID event (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Field yang diubah
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.updateEventRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.dataResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.EventResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Ubah event
+      tags:
+      - events
+  /api/v1/events/{id}/attendances:
+    get:
+      description: 'Lead: semua. Division Head: semua di event divisinya, hanya anggota
+        divisinya di event lain. Member: hanya data dirinya.'
+      parameters:
+      - description: ID event (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 1
+        description: Halaman (mulai 1)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Jumlah per halaman (maks 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.pageResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/handler.AttendanceRecordResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Daftar kehadiran event
+      tags:
+      - attendances
+  /api/v1/events/{id}/check-in:
+    post:
+      description: 'Hanya peserta terdaftar, hanya saat start_at <= sekarang <= end_at.
+        Idempotent: check-in pertama 201, check-in berikutnya 200 dengan data yang
+        sama (tidak membuat baris baru).'
+      parameters:
+      - description: ID event (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sudah check-in sebelumnya
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.dataResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.AttendanceResponse'
+              type: object
+        "201":
+          description: Check-in baru
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.dataResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.AttendanceResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "403":
+          description: NOT_REGISTERED
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "409":
+          description: CHECK_IN_NOT_OPEN, EVENT_ENDED
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Check-in ke event
+      tags:
+      - attendances
+  /api/v1/events/{id}/participants:
+    get:
+      description: 'Lead: semua peserta. Division Head: semua peserta event divisinya,
+        dan hanya anggota divisinya di event lain. Member: hanya data dirinya.'
+      parameters:
+      - description: ID event (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 1
+        description: Halaman (mulai 1)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Jumlah per halaman (maks 100)
+        in: query
+        name: limit
+        type: integer
+      - default: registered
+        description: Status pendaftaran
+        enum:
+        - registered
+        - cancelled
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.pageResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/handler.ParticipantResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Daftar peserta event
+      tags:
+      - registrations
+  /api/v1/events/{id}/register:
+    delete:
+      description: Slot kuota dikembalikan. Ditolak jika event sudah selesai atau
+        sudah check-in.
+      parameters:
+      - description: ID event (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "409":
+          description: EVENT_ENDED, ALREADY_CHECKED_IN
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Batalkan pendaftaran
+      tags:
+      - registrations
+    post:
+      description: 'Semua role. Kuota dijaga atomik di database: tidak pernah terlampaui
+        walau banyak request bersamaan. Mendaftar ulang setelah membatalkan diperbolehkan.'
+      parameters:
+      - description: ID event (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.dataResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.RegistrationResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "409":
+          description: QUOTA_FULL, ALREADY_REGISTERED, EVENT_ENDED
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Daftar ke event
+      tags:
+      - registrations
+  /api/v1/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.dataResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.UserResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Profil user yang sedang login
+      tags:
+      - me
+    patch:
+      consumes:
+      - application/json
+      description: Hanya field aman (name, phone, bio). Field lain seperti role, division_id,
+        deleted_at diabaikan. String kosong menghapus phone/bio.
+      parameters:
+      - description: Field yang diubah
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.updateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.dataResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.UserResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Ubah profil sendiri
+      tags:
+      - me
+  /api/v1/members:
+    get:
+      description: Lead melihat semua anggota, Division Head hanya divisinya, Member
+        hanya dirinya sendiri.
+      parameters:
+      - default: 1
+        description: Halaman (mulai 1)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Jumlah per halaman (maks 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Filter role
+        enum:
+        - lead
+        - division_head
+        - member
+        in: query
+        name: role
+        type: string
+      - description: Filter divisi (UUID)
+        in: query
+        name: division_id
+        type: string
+      - description: Cari nama/email (case-insensitive)
+        in: query
+        name: search
+        type: string
+      - default: name
+        description: Kolom urutan
+        enum:
+        - name
+        - created_at
+        - email
+        in: query
+        name: sort
+        type: string
+      - default: asc
+        description: Arah urutan
+        enum:
+        - asc
+        - desc
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.pageResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/handler.UserResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Daftar anggota
+      tags:
+      - members
+    post:
+      consumes:
+      - application/json
+      description: Lead dapat menambah role apa pun. Division Head hanya menambah
+        role member di divisinya (division_id default ke divisinya). Tanpa password,
+        akun hanya bisa login via Google.
+      parameters:
+      - description: Data anggota
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.createMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.dataResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.UserResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Tambah anggota
+      tags:
+      - members
+  /api/v1/members/{id}:
+    delete:
+      description: 'Lead: semua anggota kecuali diri sendiri. Division Head: anggota
+        (role member) di divisinya. Anggota yang dihapus tidak bisa login dan tokennya
+        langsung tidak berlaku.'
+      parameters:
+      - description: ID anggota (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Hapus anggota (soft delete)
+      tags:
+      - members
+    get:
+      description: Anggota di luar akses pemanggil dilaporkan 404 agar keberadaannya
+        tidak bocor.
+      parameters:
+      - description: ID anggota (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.dataResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.UserResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Detail anggota
+      tags:
+      - members
+    patch:
+      consumes:
+      - application/json
+      description: 'Lead: semua anggota. Division Head: anggota (role member) di divisinya.
+        Role/divisi diubah lewat endpoint /role.'
+      parameters:
+      - description: ID anggota (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Field yang diubah
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.updateMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.dataResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.UserResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Ubah data anggota
+      tags:
+      - members
+  /api/v1/members/{id}/role:
+    patch:
+      consumes:
+      - application/json
+      description: 'Hanya Lead. Tercatat di audit log dalam transaksi yang sama. division_id
+        opsional (default: divisi saat ini), wajib ada untuk role selain lead.'
+      parameters:
+      - description: ID anggota (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Role baru
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.changeRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.dataResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.UserResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apperror.Body'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/apperror.Body'
+      security:
+      - BearerAuth: []
+      summary: Ubah role anggota
+      tags:
+      - members
+  /healthz:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.healthResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/handler.healthResponse'
+      summary: Health check
+      tags:
+      - system
+securityDefinitions:
+  BearerAuth:
+    description: Isi dengan "Bearer <access_token>" dari POST /api/v1/auth/login.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

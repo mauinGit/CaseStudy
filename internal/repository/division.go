@@ -27,5 +27,5 @@ func (r *DivisionRepo) List(ctx context.Context) ([]domain.Division, error) {
 		}
 		out = append(out, d)
 	}
-	return out, wrapIf("list divisions", rows.Err())
+	return out, wrap("list divisions", rows.Err())
 }

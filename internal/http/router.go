@@ -7,7 +7,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 
+	_ "github.com/mauinGit/gdgoc-core-team-api/docs" // registers the generated OpenAPI spec
 	"github.com/mauinGit/gdgoc-core-team-api/internal/apperror"
 	"github.com/mauinGit/gdgoc-core-team-api/internal/config"
 	"github.com/mauinGit/gdgoc-core-team-api/internal/http/handler"
@@ -47,11 +50,15 @@ func NewRouter(d Deps) (*gin.Engine, error) {
 		return nil, fmt.Errorf("auth service: %w", err)
 	}
 	userSvc := service.NewUserService(store, cfg.BcryptCost)
+	eventSvc := service.NewEventService(store)
+	auditSvc := service.NewAuditService(store)
 
 	// ---- handlers ----
 	health := handler.NewHealthHandler(d.DB)
 	authH := handler.NewAuthHandler(authSvc, cfg.IsProduction())
 	userH := handler.NewUserHandler(userSvc)
+	eventH := handler.NewEventHandler(eventSvc)
+	auditH := handler.NewAuditHandler(auditSvc)
 
 	// ---- engine & global middleware ----
 	r := gin.New()
@@ -77,6 +84,11 @@ func NewRouter(d Deps) (*gin.Engine, error) {
 	r.GET("/healthz", health.Healthz)
 	r.HEAD("/healthz", health.Healthz)
 
+	// API documentation (Swagger UI + spec at /docs/doc.json).
+	r.GET("/docs", func(c *gin.Context) { c.Redirect(http.StatusMovedPermanently, "/docs/index.html") })
+	r.GET("/docs/*any", middleware.DocsCSP(),
+		ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("/docs/doc.json"), ginSwagger.DocExpansion("none")))
+
 	// ---- API v1 ----
 	api := r.Group("/api/v1", middleware.NoStore())
 
@@ -100,6 +112,20 @@ func NewRouter(d Deps) (*gin.Engine, error) {
 	members.PATCH("/:id", userH.UpdateMember)
 	members.DELETE("/:id", userH.DeleteMember)
 	members.PATCH("/:id/role", userH.ChangeRole)
+
+	events := authed.Group("/events")
+	events.GET("", eventH.List)
+	events.POST("", eventH.Create)
+	events.GET("/:id", eventH.Get)
+	events.PATCH("/:id", eventH.Update)
+	events.DELETE("/:id", eventH.Delete)
+	events.POST("/:id/register", eventH.Register)
+	events.DELETE("/:id/register", eventH.Cancel)
+	events.GET("/:id/participants", eventH.Participants)
+	events.POST("/:id/check-in", eventH.CheckIn)
+	events.GET("/:id/attendances", eventH.Attendances)
+
+	authed.GET("/audit-logs", auditH.List)
 
 	return r, nil
 }

@@ -81,8 +81,12 @@ func (r *UserRepo) LinkGoogleSub(ctx context.Context, id uuid.UUID, sub string) 
 	return nil
 }
 
-// wrap adds context to infrastructure errors but leaves domain errors intact.
+// wrap adds context to infrastructure errors but leaves domain errors (and nil)
+// intact.
 func wrap(op string, err error) error {
+	if err == nil {
+		return nil
+	}
 	var de *domain.Error
 	if errors.As(err, &de) {
 		return err
@@ -179,7 +183,7 @@ func (r *UserRepo) List(ctx context.Context, f domain.MemberFilter) (domain.Page
 		}
 		page.Items = append(page.Items, u)
 	}
-	return page, wrapIf("list users", rows.Err())
+	return page, wrap("list users", rows.Err())
 }
 
 // escapeLike escapes LIKE wildcards so user input is matched literally.
@@ -254,13 +258,6 @@ func mapUserWriteErr(op string, err error) error {
 		return domain.ErrDivisionNotFound
 	case code == pgCheckViolation && constraint == "users_division_required_chk":
 		return domain.ErrDivisionRequired
-	}
-	return fmt.Errorf("%s: %w", op, err)
-}
-
-func wrapIf(op string, err error) error {
-	if err == nil {
-		return nil
 	}
 	return fmt.Errorf("%s: %w", op, err)
 }

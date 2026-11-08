@@ -267,8 +267,13 @@ type memberSnapshot struct {
 	DivisionID *uuid.UUID  `json:"division_id"`
 }
 
-// DeleteMember soft-deletes a member and records it in the audit log within
-// the same transaction.
+type deletionResult struct {
+	CancelledRegistrations int `json:"cancelled_registrations"`
+}
+
+// DeleteMember soft-deletes a member, cancels their registrations for events
+// that have not ended (giving the slots back) and records it in the audit
+// log, all within the same transaction.
 func (s *UserService) DeleteMember(ctx context.Context, actor domain.Actor, id uuid.UUID) error {
 	if !canManageMembers(actor) {
 		return domain.ErrForbidden
@@ -283,12 +288,17 @@ func (s *UserService) DeleteMember(ctx context.Context, actor domain.Actor, id u
 		if err := r.Users.SoftDelete(ctx, t.ID); err != nil {
 			return err
 		}
+		cancelled, err := r.Registrations.CancelUpcomingForUser(ctx, t.ID)
+		if err != nil {
+			return err
+		}
 		return r.Audit.Insert(ctx, domain.AuditEntry{
 			ActorID:  &a.UserID,
 			Action:   domain.AuditMemberDeleted,
 			Entity:   domain.EntityUser,
 			EntityID: t.ID.String(),
 			OldValue: memberSnapshot{Name: t.Name, Email: t.Email, Role: t.Role, DivisionID: t.DivisionID},
+			NewValue: deletionResult{CancelledRegistrations: cancelled},
 			IP:       a.IP,
 		})
 	})

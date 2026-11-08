@@ -27,6 +27,18 @@ import (
 	"github.com/mauinGit/gdgoc-core-team-api/seed"
 )
 
+// main starts the API. The annotations below are swag's general API info.
+//
+//	@title						GDGoC UNSRI Core Team API
+//	@version					1.0
+//	@description				REST API manajemen Core Team dan anggota GDGoC UNSRI: autentikasi (JWT + Google OAuth), RBAC (Lead, Division Head, Member), manajemen anggota, event dengan kuota, kehadiran, dan audit log.
+//	@description
+//	@description				Semua respons sukses berbentuk {"data": ...} (list: {"data": [...], "meta": {...}}), semua error berbentuk {"error": {"code", "message", "fields?"}}.
+//	@BasePath					/
+//	@securityDefinitions.apikey	BearerAuth
+//	@in							header
+//	@name						Authorization
+//	@description				Isi dengan "Bearer <access_token>" dari POST /api/v1/auth/login.
 func main() {
 	// Local convenience only: load .env if present. Real env vars win.
 	_ = godotenv.Load()

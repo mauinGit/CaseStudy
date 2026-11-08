@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: vet, build & test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: gdgoc
+          POSTGRES_PASSWORD: gdgoc
+          POSTGRES_DB: gdgoc
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U gdgoc"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # With CI set, integration tests fail instead of skipping when the
+      # database is missing.
+      CI: "true"
+      TEST_DATABASE_URL: postgres://gdgoc:gdgoc@localhost:5432/gdgoc?sslmode=disable
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: gofmt
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "Files need gofmt:"; echo "$unformatted"; exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: go build
+        run: go build ./...
+
+      - name: OpenAPI spec is up to date
+        run: |
+          make docs
+          git diff --exit-code -- docs openapi.yaml
+
+      - name: go test (race detector, real PostgreSQL)
+        run: go test -race -count=1 -coverprofile=coverage.out ./...
+
+      - name: coverage summary
+        run: go tool cover -func=coverage.out | tail -1
+
+  docker:
+    name: docker image builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: docker build
+        run: docker build -t gdgoc-core-team-api:ci .
+
+  secrets:
+    name: secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

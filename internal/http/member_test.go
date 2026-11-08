@@ -520,6 +520,7 @@ func TestConcurrentLeadsCannotDemoteEachOther(t *testing.T) {
 			{current.token, other.ID, current.id},
 			{otherToken, current.id, other.ID},
 		}
+		api.WarmPool(len(attempts))
 		var wg sync.WaitGroup
 		start := make(chan struct{})
 		for i, a := range attempts {

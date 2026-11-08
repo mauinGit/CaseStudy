@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -82,8 +83,11 @@ func respondBindError(c *gin.Context, err error) {
 		return
 	}
 
+	var timeErr *time.ParseError
 	var typeErr *json.UnmarshalTypeError
 	switch {
+	case errors.As(err, &timeErr):
+		apperror.Respond(c, &apperror.ValidationError{Message: "Format waktu tidak valid, gunakan RFC3339 (contoh: 2026-11-08T09:00:00+07:00)"})
 	case errors.As(err, &typeErr):
 		apperror.Respond(c, &apperror.ValidationError{
 			Message: "Input tidak valid",
