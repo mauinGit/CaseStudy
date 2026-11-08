@@ -29,8 +29,9 @@ type Config struct {
 	JWTTTL     time.Duration `envconfig:"JWT_TTL" default:"2h"`
 	BcryptCost int           `envconfig:"BCRYPT_COST" default:"12"`
 
-	LoginRateLimit  int           `envconfig:"LOGIN_RATE_LIMIT" default:"5"`
-	LoginRateWindow time.Duration `envconfig:"LOGIN_RATE_WINDOW" default:"1m"`
+	LoginRateLimit   int           `envconfig:"LOGIN_RATE_LIMIT" default:"5"`
+	LoginIPRateLimit int           `envconfig:"LOGIN_IP_RATE_LIMIT" default:"30"`
+	LoginRateWindow  time.Duration `envconfig:"LOGIN_RATE_WINDOW" default:"1m"`
 
 	GoogleClientID     string `envconfig:"GOOGLE_CLIENT_ID"`
 	GoogleClientSecret string `envconfig:"GOOGLE_CLIENT_SECRET"`
@@ -75,8 +76,8 @@ func (c *Config) validate() error {
 	if c.JWTTTL <= 0 {
 		errs = append(errs, errors.New("JWT_TTL must be positive"))
 	}
-	if c.LoginRateLimit <= 0 || c.LoginRateWindow <= 0 {
-		errs = append(errs, errors.New("LOGIN_RATE_LIMIT and LOGIN_RATE_WINDOW must be positive"))
+	if c.LoginRateLimit <= 0 || c.LoginIPRateLimit <= 0 || c.LoginRateWindow <= 0 {
+		errs = append(errs, errors.New("LOGIN_RATE_LIMIT, LOGIN_IP_RATE_LIMIT and LOGIN_RATE_WINDOW must be positive"))
 	}
 	if c.DBMaxConns <= 0 {
 		errs = append(errs, errors.New("DB_MAX_CONNS must be positive"))
