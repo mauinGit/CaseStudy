@@ -67,7 +67,7 @@ go run ./cmd/api seed       # migrasi + seed lalu keluar
 
 ## Akun uji
 
-Seed membuat 4 divisi (Back-End, Front-End, Mobile, UI/UX), 8 akun, dan 6 event. Semua akun memakai password yang sama dari `SEED_PASSWORD`. Di Docker Compose lokal defaultnya **`GdgocUnsri2026!`**.
+Seed membuat 4 divisi (Back-End, Front-End, Mobile, UI/UX), 8 akun, dan 6 event. Semua akun memakai password yang sama dari `SEED_PASSWORD`. Di Docker Compose lokal defaultnya **`GdgocUnsri2026!`**. Untuk deployment produksi, password diatur lewat `SEED_PASSWORD` di Render dan tidak dipublikasikan di repo.
 
 | Role | Email | Divisi |
 |---|---|---|
@@ -361,7 +361,31 @@ Semua konfigurasi dari environment variable (lihat [`.env.example`](.env.example
 
 ## Deploy (Render + Neon)
 
-Deploy memakai **Render** (Web Service, Docker, region Singapore) dan **Neon** PostgreSQL (region Singapore). Detail langkah dan URL produksi ditambahkan setelah deploy.
+Deploy memakai **Render** (Web Service, Docker, free plan, region Singapore) dan **Neon** PostgreSQL (region Singapore, agar latensi API ↔ database rendah). Konfigurasi service ada di [`render.yaml`](render.yaml) (Render Blueprint). Tidak ada secret di repo: nilai rahasia diisi di dashboard Render.
+
+### 1. Database (Neon)
+
+1. Buat project di [neon.tech](https://neon.tech) dengan region **AWS Asia Pacific (Singapore)**.
+2. Salin connection string **direct** (host *tanpa* `-pooler`), format `postgres://USER:PASSWORD@HOST/DB?sslmode=require`. Endpoint direct dipakai karena golang-migrate memegang advisory lock level session, yang tidak bisa ditahan oleh pooler mode transaksi.
+
+### 2. Web service (Render)
+
+1. Di Render: **New → Blueprint**, pilih repo ini. Render membaca `render.yaml` dan membuat service `gdgoc-core-team-api`.
+2. Isi nilai yang diminta:
+   - `DATABASE_URL`: connection string Neon dari langkah 1.
+   - `SEED_PASSWORD`: password akun uji (minimal 8 karakter).
+   - `JWT_SECRET` dibuat otomatis oleh Render.
+3. Deploy. Saat start, API menjalankan migrasi dan seed idempotent, lalu Render memeriksa `GET /healthz`.
+
+Setiap push ke `main` memicu deploy ulang otomatis.
+
+| Pengaturan | Nilai | Alasan |
+|---|---|---|
+| `APP_ENV` | `production` | HSTS, cookie `Secure`, mode release, log JSON |
+| `TRUSTED_PROXIES` | rentang IP privat | Load balancer Render menambahkan IP klien asli ke `X-Forwarded-For`. Hanya proxy privat yang dipercaya, sehingga rate limit dan audit log memakai IP asli dan header palsu dari klien diabaikan. |
+| `DB_MAX_CONNS` | `5` | Batas koneksi Neon free tier |
+
+Google OAuth tetap nonaktif sampai `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, dan `GOOGLE_REDIRECT_URL` (`https://<service>.onrender.com/api/v1/auth/google/callback`) ditambahkan di dashboard.
 
 ### Keep-alive (cron-job.org)
 
@@ -371,7 +395,7 @@ Render free tier menidurkan service setelah ±15 menit tanpa trafik. Supaya API 
 2. Buat cron job baru dengan URL `https://<render-service>.onrender.com/healthz`, method `GET`, jadwal **setiap 10 menit**.
 3. Simpan dan aktifkan.
 
-> **Catatan:** jika service sempat tidur, **request pertama bisa lambat (±30–60 detik)** karena container perlu dinyalakan ulang. Request berikutnya normal.
+> **Catatan:** jika service sempat tidur, **request pertama bisa lambat (±30–60 detik)** karena container perlu dinyalakan ulang. Request berikutnya normal. Neon juga menidurkan compute database setelah beberapa menit idle, jadi query pertama setelah idle bisa tertunda ±1 detik.
 
 ---
 
