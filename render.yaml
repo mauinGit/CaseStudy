@@ -1,0 +1,69 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+#
+# One free Docker web service in Singapore, close to the Neon database
+# (also Singapore). Secrets are never stored here: values marked
+# `sync: false` are entered in the Render dashboard, JWT_SECRET is generated
+# by Render.
+services:
+  - type: web
+    name: gdgoc-core-team-api
+    runtime: docker
+    repo: https://github.com/mauinGit/CaseStudy
+    branch: main
+    region: singapore
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: info
+
+      # Neon connection string. Use the DIRECT endpoint (host without
+      # "-pooler"): golang-migrate takes a session-level advisory lock, which
+      # a transaction-mode pooler cannot hold.
+      - key: DATABASE_URL
+        sync: false
+      # Neon free tier allows a limited number of direct connections.
+      - key: DB_MAX_CONNS
+        value: "5"
+      - key: AUTO_MIGRATE
+        value: "true"
+      # Idempotent: creates the demo divisions, test accounts and events once.
+      - key: SEED_ON_START
+        value: "true"
+      - key: SEED_PASSWORD
+        sync: false
+
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_ISSUER
+        value: gdgoc-unsri-core-team-api
+      - key: JWT_TTL
+        value: 2h
+      - key: BCRYPT_COST
+        value: "12"
+      - key: LOGIN_RATE_LIMIT
+        value: "5"
+      - key: LOGIN_IP_RATE_LIMIT
+        value: "30"
+      - key: LOGIN_RATE_WINDOW
+        value: 1m
+
+      # Render's load balancer reaches the container from a private address
+      # and appends the real client IP to X-Forwarded-For. Trusting only
+      # private ranges makes c.ClientIP() return that real IP (used for rate
+      # limiting and the audit log) while a client-supplied X-Forwarded-For
+      # value cannot spoof it.
+      - key: TRUSTED_PROXIES
+        value: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,100.64.0.0/10
+
+      # Google OAuth stays disabled until GOOGLE_CLIENT_ID,
+      # GOOGLE_CLIENT_SECRET and GOOGLE_REDIRECT_URL are added in the
+      # dashboard. CORS_ALLOWED_ORIGINS can be added the same way when a
+      # browser front end needs it.
+      - key: ALLOWED_EMAIL_DOMAIN
+        value: gdgoc-unsri.test
