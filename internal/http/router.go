@@ -7,7 +7,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 
+	_ "github.com/mauinGit/gdgoc-core-team-api/docs" // registers the generated OpenAPI spec
 	"github.com/mauinGit/gdgoc-core-team-api/internal/apperror"
 	"github.com/mauinGit/gdgoc-core-team-api/internal/config"
 	"github.com/mauinGit/gdgoc-core-team-api/internal/http/handler"
@@ -80,6 +83,11 @@ func NewRouter(d Deps) (*gin.Engine, error) {
 
 	r.GET("/healthz", health.Healthz)
 	r.HEAD("/healthz", health.Healthz)
+
+	// API documentation (Swagger UI + spec at /docs/doc.json).
+	r.GET("/docs", func(c *gin.Context) { c.Redirect(http.StatusMovedPermanently, "/docs/index.html") })
+	r.GET("/docs/*any", middleware.DocsCSP(),
+		ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("/docs/doc.json"), ginSwagger.DocExpansion("none")))
 
 	// ---- API v1 ----
 	api := r.Group("/api/v1", middleware.NoStore())

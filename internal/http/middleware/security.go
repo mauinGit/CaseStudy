@@ -27,6 +27,18 @@ func SecurityHeaders(production bool) gin.HandlerFunc {
 	}
 }
 
+// DocsCSP relaxes the Content-Security-Policy for the Swagger UI pages only.
+// The UI is served from this origin but uses an inline bootstrap script and
+// inline styles; everything else keeps the strict API policy.
+func DocsCSP() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("Content-Security-Policy",
+			"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "+
+				"img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'")
+		c.Next()
+	}
+}
+
 // NoStore prevents caching of API responses that may contain personal data.
 func NoStore() gin.HandlerFunc {
 	return func(c *gin.Context) {
