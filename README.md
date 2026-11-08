@@ -1,6 +1,6 @@
 # GDGoC UNSRI — Core Team Management API
 
-[![CI](https://github.com/mauinGit/gdgoc-core-team-api/actions/workflows/ci.yml/badge.svg)](https://github.com/mauinGit/gdgoc-core-team-api/actions/workflows/ci.yml)
+[![CI](https://github.com/mauinGit/CaseStudy/actions/workflows/ci.yml/badge.svg)](https://github.com/mauinGit/CaseStudy/actions/workflows/ci.yml)
 
 REST API untuk mengelola Core Team dan anggota GDGoC UNSRI: autentikasi (email + password dan Google OAuth), otorisasi berbasis role (Lead, Division Head, Member), manajemen anggota, event dengan kuota, pendaftaran, kehadiran (check-in), dan audit log.
 
